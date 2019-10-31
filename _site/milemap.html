@@ -1,0 +1,890 @@
+<html>
+  <head>
+     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+   crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+   integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+   crossorigin=""></script>
+ </head>
+  <body>
+   <div id="mapid" style='position: absolute; top: 0; right: 0; bottom: 0; left: 0;'></div>
+  </body>
+    <script>
+      var mymap = L.map('mapid').setView([38.948152, -102.711772], 4.5);
+
+
+      function haversine() {
+       var radians = Array.prototype.map.call(arguments, function(deg) { return deg/180.0 * Math.PI; });
+       var lat1 = radians[0], lon1 = radians[1], lat2 = radians[2], lon2 = radians[3];
+       var R = 6372.8; // km
+       var dLat = lat2 - lat1;
+       var dLon = lon2 - lon1;
+       var a = Math.sin(dLat / 2) * Math.sin(dLat /2) + Math.sin(dLon / 2) * Math.sin(dLon /2) * Math.cos(lat1) * Math.cos(lat2);
+       var c = 2 * Math.asin(Math.sqrt(a));
+       return R * c * 0.621371;
+      }
+
+     function createMarker(element) {
+        var marker = L.marker([element.latitude, element.longitude]).addTo(mymap);
+        var div = document.createElement('div');
+        div.style.paddingTop = '10px';
+
+        var textStyle = 'style="display:block; text-align:center;"';
+        var imgStyle = 'style="width:100px; margin:auto; display:block;"';
+        div.innerHTML = `<b ${textStyle}>${element.title}</b><br><img ${imgStyle} src="${element.raw_url}"/>`;
+        div.addEventListener('click', event => {
+          window.open(`${element.raw_url}`, '_blank');
+        });
+        marker.bindPopup(div);
+      };
+
+      var json = [
+        {
+          'title': 'La Sal Road',
+          'latitude': 38.543238889,
+          'longitude': -109.310311111,
+          'raw_url': 'images/IMG_0434.jpg',
+        },
+        {
+          'title': 'Near Double Arch',
+          'latitude': 38.641063889,
+          'longitude': -109.530052778,
+          'raw_url': 'images/IMG_0379.jpg',
+        },
+        {
+          'title': 'Dead Horse Point',
+          'latitude': 38.470069444,
+          'longitude': -109.741088889,
+          'raw_url': 'images/IMG_0557.jpg',
+        },
+        {
+          'title': 'Delicate Arch',
+          'latitude': 38.74379722222222,
+          'longitude': -109.49925277777778,
+          'raw_url': 'images/IMG_0316.jpg',
+        },
+        // {
+        //   'title': 'Black Arch',
+        //   'latitude': 38.7966,
+        //   'longitude': -109.6156,
+        //   'raw_url': 'https://lh3.googleusercontent.com/pJUXsr0VXwLVrvZwaDKxhlQGo8jcC0LtYjvN3XE-HyRRd_UdfKb30SAqeAHmGGWLNeFFj9hCHOR0A9m7B3xd_sfzaCfpGb4sNdcsPau8yxqTEXm6sULdiesux7TDPLDGLqdUOjCyNdQq8r8GF41RECMwGhPjlF8UMVvQoMucdaBToU8FfJFV-aMPPedjIRsPcA8nuYkv2hX3f57BvNKHeHtiD7QVmCbVWwURL_D0hx0vMTxHOUivMBkM-C6FZMXAoM2Xco0MFBdlyTmxkTN3kW_y6iIAuG5aL6d2iOEdfCAYg4af3xg53HD8nRen4a3NgsK8YRFp65f-gbuPj_n6TR454GTzsTmYlzJS9FuEZOJPL7ZJw_mtp3sLndQIksj2FUNURHsiCDOgXB0gUYb9t7IkBB8PsuGpSn5qSX6VnnWbcoa1Wg20ChtHksXgvdOD0yHyWi5IFiSAVp9Ok14x0vs6j5yJEKg1sVbTluI2VVq_BD29yjnjoo08JFCeSGxav0yDTcdFE4Po3qqmCwtwIp5O-aXMqw_LJLANf-9zmQd6ssyzb51CU7lSWrw18lPhS8kEEWRhGdWhOqXhn7ACYmzI3TSL3e4RGNgmDtPFaZZIc-1C2jdkN0fKXkvshPfXoRzZt5HT8fHQOLHcf6YjncNopyPpe0Xa'
+        // },
+        // {
+        //   'title': 'Orange Cliffs',
+        //   'latitude': 38.313596,
+        //   'longitude': -109.857819, 
+        //   'raw_url': 'https://lh3.googleusercontent.com/GLMhgJd2RkHrlyBGWMYSXlWGXIhYR5SB67O8uqXe3BJwnnyZ-3F7fk-oMJ-qE00NlIZZK53P059bbzWg13eXhGNdhgypnU6Lyz5KlJ-o9r0sTcjBR_gUYaRwIe-KUwfiLOZ2HAE-wjubF2SJapZUO3NR0scBwf1-mqXnVSTSlztp54JBvG5IbCe3wTaDr-f8zBrAbHZBbCtsAmKjXKkY0AtfZRTGU58hT5KoVRxXpLKTGF6a0h-nrydB5uHb9zV2x7Pjo1zxV3eb4HKN7vswrGdhkEXK2brjSVzMqrxjiAgDSxkGwf0aX7zpAEEA9YVb2ZMRzkRc9h1WO8melHAT00CKboIPxt_YR0FswHNqWZU2xYQhclRi2TmYrTKlL-ye3DN4_Yp0AHunUSUulr-Vc_jWg0uWtEoq8WS0XduzcXqfjLgDGwFwsM5MDV9bYQ7_XBIZWeRjfoxgq9u-gRhcc53JBB_Gjk8liUnHODgcbQpZFS52otKwBBu5Mcnekklp9QKwhsJDi5wfadWTvEntbm_UEuzKvYShb1qpSg9-66i48laA4kcTi9VX6YJh9MjWBs2oJgJd9geJdvsr4sscuRCHktRGpQhGlUn2UGozBsnlx9n6cMFZ1EYQFQDwi4UEBCth97oAMll00bt2t7RKuVssRrcTbrr6'
+        // },
+        {
+          'title': 'Grand View Point', 
+          'latitude': 38.310100, 
+          'longitude': -109.856600, 
+          'raw_url': 'images/IMG_0593.jpg',
+        },
+        {
+          'title': 'Landscape Arch',
+          'latitude': 38.791200, 
+          'longitude': -109.606900,
+          'raw_url': 'images/IMG_0542.jpg',
+        },
+        {
+          'title': 'Natural Bridge Caverns',
+          'latitude': 29.6937641, 
+          'longitude': -98.3440549,
+          'raw_url': 'images/MVIMG_20171210_113926.jpg',
+        },
+
+        {
+          'title': 'Japanese Tea Garden',
+          'latitude': 29.4613333, 
+          'longitude': -98.4768528,
+          'raw_url': 'images/MVIMG_20171209_162820.jpg',
+        },
+        {
+          'title': 'Carlsbad Caverns',
+          'latitude': 32.1756082, 
+          'longitude': -104.4440351,
+          'raw_url': 'images/IMG_20180402_120938.jpg',
+        },
+        {
+          'title': 'Cibola National Forest Outlook',
+          'latitude': 35.2100806, 
+          'longitude': -106.4495583,
+          'raw_url': 'images/IMG_20180401_110458.jpg',
+        },
+        {
+          'title': 'Cibola National Forest Drive',
+          'latitude': 35.2530778, 
+          'longitude': -106.4066389,
+          'raw_url': 'images/MVIMG_20180401_100434.jpg',
+        },
+        {
+          'title': 'Roswell',
+          'latitude': 33.3725194, 
+          'longitude': -104.5198306,
+          'raw_url': 'images/MVIMG_20180401_151026_1.jpg',
+        },
+        {
+          'title': 'Meow Wolf',
+          'latitude': 35.655825, 
+          'longitude': -106.00065,
+          'raw_url': 'images/MVIMG_20180330_135813.jpg',
+        },
+        {
+          'title': 'Lake Powell Plane',
+          'latitude': 37.0026623, 
+          'longitude': -111.4078997,
+          'raw_url': 'images/IMG_20140822_130148964.jpg',
+        },
+        {
+          'title': 'Lake Powell Camping',
+          'latitude': 37.0095911, 
+          'longitude': -111.2643599,
+          'raw_url': 'images/IMG_20140822_190723652_HDR.jpg',
+        },
+        {
+          'title': 'Mount Talbert Nature Park',
+          'latitude': 45.4253556, 
+          'longitude': -122.5557833,
+          'raw_url': 'images/IMG_20180903_113315.jpg',
+        },
+        {
+          'title': 'Cape Kiwanda',
+          'latitude': 45.2221917, 
+          'longitude': -123.9756083,
+          'raw_url': 'images/IMG_20180903_113315.jpg',
+        },
+        {
+          'title': 'Three Fingered Jack Outlook',
+          'latitude': 44.4834611, 
+          'longitude': -121.8376222,
+          'raw_url': 'images/IMG_20170909_143737.jpg',
+        },
+        {
+          'title': 'Cascade Locks',
+          'latitude': 45.6718521, 
+          'longitude': -121.8930359,
+          'raw_url': 'images/IMAG0305.jpg',
+        },
+        {
+          'title': 'John McAfee',
+          'latitude': 32.8408333, 
+          'longitude': -97.1916667,
+          'raw_url': 'images/IMG_20151025_113032.jpg',
+        },
+
+        {
+          'title': 'JFK Museum',
+          'latitude': 32.7794444, 
+          'longitude': -96.8080556,
+          'raw_url': 'images/IMG_20151025_114022.jpg',
+        },
+
+        {
+          'title': 'Newport',
+          'latitude': 44.6211111, 
+          'longitude': -124.05,
+          'raw_url': 'images/IMG_20150910_201910.jpg',
+        },
+
+        {
+          'title': 'Multnomah Falls',
+          'latitude': 45.5769444, 
+          'longitude': -122.1163889,
+          'raw_url': 'images/IMG_20150917_101433.jpg',
+        },
+
+        {
+          'title': 'Quines Creek',
+          'latitude': 42.7770028, 
+          'longitude': -123.28055,
+          'raw_url': 'images/IMG_20170819_131711.jpg',
+        },
+
+
+        {
+          'title': 'Colombia Gorge',
+          'latitude': 45.6514091, 
+          'longitude': -121.9180298,
+          'raw_url': 'images/IMAG0296-02.jpeg',
+        },
+    
+        
+        {
+          'title': 'Willamette National Forest',
+          'latitude': 44.4925499, 
+          'longitude': -121.7939758,
+          'raw_url': 'images/IMAG0278.jpg',
+        },
+  
+        {
+          'title': 'Detroit Lake',
+          'latitude': 44.7286972, 
+          'longitude': -122.1477306,
+          'raw_url': 'images/IMG_20170908_164916.jpg',
+        },
+  
+        {
+          'title': 'Facebook',
+          'latitude': 37.4855556, 
+          'longitude': -122.1469444,
+          'raw_url': 'images/IMG_20161107_200726.jpg',
+        },
+
+
+        {
+          'title': 'Go Utes',
+          'latitude': 39.747638, 
+          'longitude': -104.971166,
+          'raw_url': 'images/72266_450149977303_5569160_n.jpg',
+        },
+
+
+        {
+          'title': 'First PAC 12 Game',
+          'latitude': 34.014364, 
+          'longitude': -118.287897,
+          'raw_url': 'images/294195_2004671805015_1672543000_n.jpg',
+        },
+
+        {
+          'title': 'Edgewood Park',
+          'latitude': 37.4624528, 
+          'longitude': -122.2748528,
+          'raw_url': 'images/MVIMG_20180304_162222.jpg',
+        },
+
+        {
+          'title': 'Las Pulgas',
+          'latitude': 37.475575, 
+          'longitude': -122.2853139,
+          'raw_url': 'images/MVIMG_20180304_163118.jpg',
+        },
+
+        {
+          'title': 'Half Moon Bay',
+          'latitude': 37.4381556, 
+          'longitude': -122.4446056,
+          'raw_url': 'images/IMG_20180903_113315.jpg',
+        },
+
+
+        {
+          'title': 'Golden Gate Bridge',
+          'latitude': 37.8322694, 
+          'longitude': -122.493322,
+          'raw_url': 'images/IMG_20180429_194151.jpg',
+        },
+
+        {
+          'title': 'Alcatraz',
+          'latitude': 37.8261389, 
+          'longitude': -122.4241776,
+          'raw_url': 'images/IMG_20180501_142202.jpg',
+        },
+
+        {
+          'title': 'Hollister',
+          'latitude': 37.0857389, 
+          'longitude': -121.1692083,
+          'raw_url': 'images/IMG_20190406_120329.jpg',
+        },
+      
+        {
+          'title': 'Kolob Mountain',
+          'latitude': 37.3443444, 
+          'longitude': -113.1891389,
+          'raw_url': 'images/IMG_20181227_164712.jpg',
+        },
+    
+        {
+          'title': 'Milo vs Deer',
+          'latitude': 37.2033333, 
+          'longitude': -121.8791667,
+          'raw_url': 'images/IMG_20181007_164413_802.jpg',
+        },
+
+        {
+          'title': 'Corona Heights Park',
+          'latitude': 37.7654278, 
+          'longitude': -122.4390194,
+          'raw_url': 'images/IMG_20180804_151644.jpg',
+        },
+
+
+        // {
+        //   'title': 'Almaden QuickSilver',
+        //   'latitude': 37.2098667, 
+        //   'longitude': -121.8924556,
+        //   'raw_url': 'https://lh3.googleusercontent.com/KRTX8i3kHsvbdyR0jn87ETWClJGzrHXKZMYZpsvqoa1EKgy8oklmTZaa59_sWWeET4bJGRFXK_zmnw7yobtl8hH2knT8O_O3U5zpfyRwSEhw5Ys7CjoWSfK_vZu2HZCddHBu1GeFzQupMh9udiF64nLiS_kkdUymRDyxjk6ZZZ5v4DkeJ2s408pmp15qT8LuUgc6cmGIexPlbpADrCRbjIIiRelxhLIkz0h0kHqtEjBtV1CrZyeakthx71xnLYSdtOriwWrpVlgnb3EnwDsfIwz8fewZKKU7ZYnxnMlu0M3I6b_6ri5-FXjgjtJVwkRdNtxebJ36uomQkGtdVMiXTWv9rDqI8Ec9dDsNkJGh4NZ1cEL4-b6FX_gGfVwBxMjnHuE2QRIiN8FI_NKlvuMGzGQiqOTh7yURZ9DjVh2NEo4ZWV9vTTrJUIX8ETM9mG7hQV7auVuQE0NDVl1RYkNaa0ot6mJar0Pp4knPvg93tPSQgN9U5-JVHxHUADi1HKLM0cZTJkaR2s62jmpeaF776LGHvoIHwlh5kut6hsUfgEFsNx1hbiEloS5VQXOqdPYr7Gjg-xhH9o2du_W3NA_SjUrpLkCUWFCgaqCaP77iCzkelMRQc1ZVroLscDccMyvJp-732nKE3eN53korgElF0JjZnX4bmOBp',
+        // },
+
+        {
+          'title': 'Water Dog Lake',
+          'latitude': 37.5094333, 
+          'longitude': -122.3084056,
+          'raw_url': 'images/IMG_20180629_180955.jpg',
+        },
+
+        {
+          'title': 'Sausalito',
+          'latitude': 37.8648, 
+          'longitude': -122.4936667,
+          'raw_url': 'images/IMG_20170624_192458.jpg',
+        },
+
+        {
+          'title': 'Milo Tongue',
+          'latitude': 40.6261417,
+          'longitude': -122.6687722,
+          'raw_url': 'images/IMG_20170601_163320.jpg',
+        },
+
+        {
+          'title': 'WhiskeyTown',
+          'latitude': 40.6296361,
+          'longitude': -122.5514944,
+          'raw_url': 'images/IMG_20170601_183747.jpg',
+        },
+
+        {
+          'title': 'Milo Camping',
+          'latitude': 40.7662222,
+          'longitude': -122.5619083,
+          'raw_url': 'images/IMG_20170603_083039.jpg',
+        },
+
+        {
+          'title': 'Sierra National Forest',
+          'latitude': 37.2141056,
+          'longitude': -119.2547667,
+          'raw_url': 'images/IMG_20190406_182955.jpg',
+        },
+        {
+          'title': 'Las Vegas',
+          'latitude': 36.1009122,
+          'longitude': -115.1731337,
+          'raw_url': 'images/IMG_20141220_161830000_HDR.jpg',
+        },
+        {
+          'title': 'Clown Town',
+          'latitude': 37.779750,
+          'longitude': -122.404601,
+          'raw_url': 'images/stooges_2.jpg',
+        },
+        {
+          'title': 'Oregon Flight',
+          'latitude': 45.1819,
+          'longitude': -122.6607167,
+          'raw_url': 'images/IMG_20170414_182806.jpg',
+        },
+        {
+          'title': 'Salem',
+          'latitude': 44.9424889,
+          'longitude': -123.0438639,
+          'raw_url': 'images/IMG_20170418_141959.jpg',
+        },
+        {
+          'title': 'Desert Sunrise',
+          'latitude': 35.1828075,
+          'longitude': -116.1191564,
+          'raw_url': 'images/00100lPORTRAIT_00100_BURST20181222064257405_COVER.jpg',
+        },
+
+        {
+          'title': 'Canyon Overlook',
+          'latitude': 37.2133389,
+          'longitude': -112.9483387,
+          'raw_url': 'images/IMG_20171230_122026.jpg',
+        },
+
+        {
+          'title': 'Toquerville Overlook',
+          'latitude': 37.2345026,
+          'longitude': -113.286767,
+          'raw_url': 'images/IMG_20141226_142453433.jpg',
+        },
+      
+        {
+          'title': 'Beverly Beach',
+          'latitude': 44.7282524,
+          'longitude': -124.0612936,
+          'raw_url': 'images/IMAG0268.jpg',
+        },
+
+        {
+          'title': 'Donner Summit',
+          'latitude': 39.318611,
+          'longitude': -120.318500,
+          'raw_url': 'images/IMG_0176.jpg',
+        },
+        {
+          'title': 'Rose Bowl',
+          'latitude': 34.1612111,
+          'longitude': -118.1669972,
+          'raw_url': 'images/IMG_20181026_200831.jpg',
+        },
+
+
+        {
+          'title': 'BAFTA',
+          'latitude': 37.0042194,
+          'longitude': -113.3678528,
+          'raw_url': 'images/IMG_20180101_000222.jpg',
+        },
+
+        {
+          'title': 'Drugs',
+          'latitude': 29.4265694,
+          'longitude': -98.4899667,
+          'raw_url': 'images/IMG_20171209_160454.jpg',
+        },
+
+
+        {
+          'title': 'Del Valle',
+          'latitude': 37.5712389,
+          'longitude': -121.6860917,
+          'raw_url': 'images/IMG_20170101_173346.jpg',
+        },
+
+        {
+          'title': 'Oculus VR [Dallas]',
+          'latitude': 32.8673583,
+          'longitude': -96.7692111,
+          'raw_url': 'images/IMG_20161026_182327.jpg',
+        },
+
+        {
+          'title': 'Levi\'s Stadium',
+          'latitude': 37.402486,
+          'longitude': -121.9684958,
+          'raw_url': 'images/IMG_20160613_202855.jpg',
+        },
+
+        {
+          'title': 'Avila Beach',
+          'latitude': 35.1921269,
+          'longitude': -120.7223507,
+          'raw_url': 'images/IMG_20160529_201014-01.jpeg',
+        },
+
+        {
+          'title': 'Purisima Creek',
+          'latitude': 37.4317474,
+          'longitude': -122.3350754,
+          'raw_url': 'images/IMAG0196-01.jpeg',
+        },
+
+        {
+          'title': 'Landon\'s Ink',
+          'latitude': 37.1244444,
+          'longitude': -113.6041667,
+          'raw_url': 'images/IMG_20160416_152146.jpg',
+        },
+
+        {
+          'title': 'New Harmony',
+          'latitude': 37.4303207,
+          'longitude': -113.2388382,
+          'raw_url': 'images/IMAG0496-01.jpeg',
+        },
+
+        {
+          'title': 'Grant County Park',
+          'latitude': 37.3286743,
+          'longitude': -121.6925659,
+          'raw_url': 'images/IMAG0196-01 (1).jpeg',
+        },
+        
+        {
+          'title': 'Devil\'s Slide',
+          'latitude': 41.063466,
+          'longitude': -111.547837,
+          'raw_url': 'images/IMG_20140308_164607674.jpg',
+        },
+
+        {
+          'title': 'Cottonwood Heights',
+          'latitude': 40.5902606,
+          'longitude': -111.7984891,
+          'raw_url': 'images/IMG_20140301_174636388_HDR.jpg',
+        },
+
+        {
+          'title': 'Ingress Adventures',
+          'latitude': 37.2035774,
+          'longitude': -113.1099811,
+          'raw_url': 'images/IMG_20140112_154553_950.jpg',
+        },
+
+        {
+          'title': 'Gun Range [Virgin]',
+          'latitude': 37.220129,
+          'longitude': -113.208502,
+          'raw_url': 'images/IMG_20130303_165623_662.jpg',
+        },
+
+        {
+          'title': 'Clay Pits',
+          'latitude': 37.1275167,
+          'longitude': -113.33385,
+          'raw_url': 'images/IMG_20121226_172110_864.jpg',
+        },
+
+
+        {
+          'title': 'HammerDown Industries',
+          'latitude': 37.1651831,
+          'longitude': -113.3012514,
+          'raw_url': 'images/IMAG0024-SMILE.jpg',
+        },
+
+        {
+          'title': 'LaVerkin Overlook',
+          'latitude':  37.198611,
+          'longitude': -113.2625,
+          'raw_url': 'images/2010-06-12 12.25.41.jpg',
+        },
+
+
+        {
+          'title': 'Almost To Toquerville Falls',
+          'latitude': 37.2855472,
+          'longitude': -113.2739222,
+          'raw_url': 'images/IMG_20160926_172713.jpg',
+        },
+
+
+        {
+          'title': 'Oceanside',
+          'latitude': 33.1941812,
+          'longitude': -117.384308,
+          'raw_url': 'images/IMG_20141129_151854501.jpg',
+        },
+
+
+        {
+          'title': 'Stanford University',
+          'latitude': 37.4350595,
+          'longitude': -122.1605804,
+          'raw_url': 'images/IMG_20141115_164855261_HDR.jpg',
+        },
+
+        {
+          'title': 'Samurai Crawling',
+          'latitude': 37.246667,
+          'longitude': -113.238056,
+          'raw_url': 'images/2010_04_30_16_45_45.jpg',
+        },
+
+        {
+          'title': 'Sand Hollow',
+          'latitude': 37.1022778,
+          'longitude': -113.3750972,
+          'raw_url': 'images/IMG_20130414_142544_843.jpg',
+        },
+        {
+          'title': 'Google',
+          'latitude': 37.4248746,
+          'longitude': -122.0730053,
+          'raw_url': 'images/IMG_20140604_180710606.jpg',
+        },
+
+        {
+          'title': 'Coffee Break',
+          'latitude': 40.7625,
+          'longitude': -111.8861111,
+          'raw_url': 'images/IMG_20150919_155930.jpg',
+        },
+
+        {
+          'title': 'Palo Alto Hills',
+          'latitude': 37.3813558,
+          'longitude': -122.1773002,
+          'raw_url': 'images/IMG_20160626_161001.jpg',
+        },
+
+        {
+          'title': 'Ducks',
+          'latitude': 41.0390611,
+          'longitude': -111.9578278,
+          'raw_url': 'images/IMG_20161030_134959.jpg',
+        },
+
+        {
+          'title': 'Red Cliffs',
+          'latitude': 37.2064528,
+          'longitude': -113.3300389,
+          'raw_url': 'images/IMG_20170129_163341.jpg',
+        },
+
+        {
+          'title': 'Milo vs. Geese',
+          'latitude': 37.3467333,
+          'longitude': -121.995972,
+          'raw_url': 'images/IMG_20170709_193329.jpg',
+        },
+
+        {
+          'title': 'Nightmare Fuel',
+          'latitude': 37.4265972,
+          'longitude': -122.1445972,
+          'raw_url': 'images/IMG_20180103_154518.jpg',
+        },
+
+        {
+          'title': 'Coyote Gulch',
+          'latitude': 37.154275,
+          'longitude': -121.7089165,
+          'raw_url': 'images/MVIMG_20190428_133456.jpg',
+        },
+
+        {
+          'title': 'Icicles',
+          'latitude': 40.6490194,
+          'longitude': -111.9365861,
+          'raw_url': 'images/IMG_20130112_152231_149.jpg',
+        },
+
+        {
+          'title': 'Ping Pong',
+          'latitude': 40.635599,
+          'longitude': -111.8083194,
+          'raw_url': 'images/20140130_113730_909.jpg',
+        },
+        
+        {
+          'title': 'Milo Stick',
+          'latitude': 40.7523,
+          'longitude': -111.8716,
+          'raw_url': 'images/IMG_0141.jpg',
+        },
+  
+        {
+          'title': 'Stuck in mud',
+          'latitude': 37.086944,
+          'longitude': -113.332222,
+          'raw_url': 'images/2010_05_11_16_03_24.jpg',
+        },
+
+
+        {
+          'title': 'Mollie\'s Nipple',
+          'latitude': 37.1257694,
+          'longitude': -113.2975056,
+          'raw_url': 'images/IMG_20181226_160717.jpg',
+        },
+        
+
+        {
+          'title': 'Werner Valley',
+          'latitude': 37.0359194,
+          'longitude':-113.3537389,
+          'raw_url': 'images/MVIMG_20181228_154534.jpg',
+        },
+
+
+        {
+          'title': 'Virgin Bonfire',
+          'latitude': 37.1821886,
+          'longitude': -113.2301014,
+          'raw_url': 'images/IMG_20130923_211307.jpg',
+        },
+
+
+        {
+          'title': 'ATV Crash',
+          'latitude': 37.079742,
+          'longitude': -113.414818,
+          'raw_url': 'images/IMG_20180620_093836_721.jpg',
+        },
+
+
+        {
+          'title': 'Coral Pinks',
+          'latitude': 37.0530556,
+          'longitude': -112.7127167,
+          'raw_url': 'images/IMG_20171230_140923.jpg',
+        },
+        
+
+        {
+          'title': 'Wedding',
+          'latitude': 37.106230,
+          'longitude': -113.553720,
+          'raw_url': 'images/191314_3559425992898_2075379083_o.jpg',
+        },
+
+        {
+          'title': 'Dirt Biking',
+          'latitude': 37.212606,
+          'longitude': -113.265727,
+          'raw_url': 'images/IMG_20141222_113104706.jpg',
+        },
+
+        {
+          'title': 'SFO Inbound',
+          'latitude': 37.6823167,
+          'longitude': -122.3617583,
+          'raw_url': 'images/IMG_20180329_182456.jpg',
+        },
+
+        {
+          'title': 'Road-trip camping',
+          'latitude': 35.0746361,
+          'longitude': -116.4161056,
+          'raw_url': 'images/MVIMG_20180102_064856.jpg',
+        },
+
+
+        {
+          'title': 'RV Break [OR to UT]',
+          'latitude': 41.9665336,
+          'longitude': -112.7249908,
+          'raw_url': 'images/IMAG0365.jpg',
+        },
+
+        {
+          'title': 'Agate Beach',
+          'latitude': 44.6594444,
+          'longitude': -124.0619444,
+          'raw_url': 'images/IMG_20150910_201951.jpg',
+        },
+        
+
+        {
+          'title': 'Milo Eclipse',
+          'latitude': 45.0119778,
+          'longitude': -123.0213167,
+          'raw_url': 'images/IMG_20170821_100846.jpg',
+        },
+
+
+        {
+          'title': 'Milo, Window Protector',
+          'latitude': 37.3759806,
+          'longitude': -122.0249528,
+          'raw_url': 'images/IMG_20170829_082712.jpg',
+        },
+
+        {
+          'title': 'USS Midway',
+          'latitude': 32.7114833,
+          'longitude': -117.1799861,
+          'raw_url': 'images/IMG_2095.jpg',
+        },
+
+
+        {
+          'title': 'Balboa Park',
+          'latitude': 32.7316167,
+          'longitude': -117.1492528,
+          'raw_url': 'images/IMG_2131.jpg',
+        },
+
+        {
+          'title': 'Los Altos Gun Club',
+          'latitude': 37.2386,
+          'longitude': -122.111,
+          'raw_url': 'images/IMG_2206.jpg',
+        },
+
+        {
+          'title': 'Enchanted Forest',
+          'latitude': 44.8315722,
+          'longitude': -123.0072333,
+          'raw_url': 'images/IMG_0902.jpg',
+        },
+
+        {
+          'title': 'CCHS Football',
+          'latitude': 37.6636967,
+          'longitude': -113.0713813,
+          'raw_url': 'images/59373603619__EB5E8385-B5D4-45E8-B52A-8B589B130BCB.JPG',
+        },
+
+
+        {
+          'title': 'Muir Woods',
+          'latitude': 37.874,
+          'longitude': -122.5535,
+          'raw_url': 'images/IMG_2425.JPG',
+        },
+
+        {
+          'title': 'Santa Cruz',
+          'latitude': 36.9576417,
+          'longitude': -122.0258639,
+          'raw_url': 'images/IMG_3692.JPG',
+        },
+
+        {
+          'title': 'Monterey Bay Aquarium',
+          'latitude': 36.6175,
+          'longitude': -121.9011111,
+          'raw_url': 'images/IMG_20170729_225618_250.jpg',
+        },
+
+        {
+          'title': 'Sand Hollow Backside',
+          'latitude': 37.057438,
+          'longitude': -113.406344,
+          'raw_url': 'images/IMG_2652.JPG',
+        },
+        
+ /*
+        {
+          'title': '',
+          'latitude': ,
+          'longitude': ,
+          'raw_url': '',
+        },
+*/
+
+      ];
+      
+
+      json.forEach(function(element) {
+        createMarker(element);
+      });
+
+
+      var minDistance = Number.MAX_SAFE_INTEGER;
+      var maxDistance = 0;
+
+      var minLeft = '';
+      var minRight = '';
+
+      var maxLeft = '';
+      var maxRight = '';
+      for (var i = 0; i < json.length - 1; i++) { 
+        for (var j = i + 1; j < json.length; j++) {
+          var currentDistance = haversine(json[i].latitude, json[i].longitude, json[j].latitude, json[j].longitude);
+          if (currentDistance < minDistance) {
+            minDistance = currentDistance;
+            minLeft = json[i].title;
+            minRight = json[j].title;
+          }
+
+          if (currentDistance > maxDistance) {
+            maxDistance = currentDistance;
+            maxLeft = json[i].title;
+            maxRight = json[j].title;
+          }
+        }
+      }
+      console.log(`Min distance (${minDistance})is from ${minLeft} to ${minRight}`);
+      console.log(`Max distance (${maxDistance})is from ${maxLeft} to ${maxRight}`);
+      console.log(`Data points: ${json.length}`);
+
+      L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox.outdoors',
+        accessToken: 'pk.eyJ1IjoicnVlc2NoIiwiYSI6ImNqd3k3OGZneTEyZnQ0OW41cjRlbGkyZnoifQ.co38j34gi0NNwT5bnmmu8A'
+      }).addTo(mymap);
+    
+    </script>
+</html>
