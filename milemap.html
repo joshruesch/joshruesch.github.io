@@ -26,6 +26,9 @@
       }
 
      function createMarker(element) {
+
+        console.log(element.raw_url)
+
         var marker = L.marker([element.latitude, element.longitude]).addTo(mymap);
         var div = document.createElement('div');
         div.style.paddingTop = '10px';
@@ -153,7 +156,7 @@
           'title': 'Cape Kiwanda',
           'latitude': 45.2221917, 
           'longitude': -123.9756083,
-          'raw_url': 'images/IMG_20180903_113315.jpg',
+          'raw_url': 'images/IMG_20170911_130807.jpg',
         },
         {
           'title': 'Three Fingered Jack Outlook',
@@ -833,6 +836,41 @@
           'longitude': -113.406344,
           'raw_url': 'images/IMG_2652.JPG',
         },
+
+        {
+          'title': 'Pulga',
+          'latitude': 39.801300,
+          'longitude': -121.448000,
+          'raw_url': 'images/IMG_4487.jpg',
+        },
+
+        {
+          'title': 'Plumas National Forest',
+          'latitude': 39.816100, 
+          'longitude': -121.432200,
+          'raw_url': 'images/IMG_4517.jpg',
+        },
+
+        {
+          'title': 'Plumas Overlook',
+          'latitude': 39.8278, 
+          'longitude': -121.4227,
+          'raw_url': 'images/IMG_4534.jpg',
+        },
+
+        {
+          'title': 'Point Richmond',
+          'latitude': 37.918000,
+          'longitude': -122.387100,
+          'raw_url': 'images/IMG_3379.jpg',
+        },
+
+        {
+          'title': 'Elis Mile High Club',
+          'latitude': 37.825800,
+          'longitude': -122.269900,
+          'raw_url': 'images/IMG_7540.jpg',
+        },
         
  /*
         {
@@ -879,10 +917,12 @@
       console.log(`Max distance (${maxDistance})is from ${maxLeft} to ${maxRight}`);
       console.log(`Data points: ${json.length}`);
 
-      L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>',
+        tileSize: 512,
         maxZoom: 18,
-        id: 'mapbox.outdoors',
+        zoomOffset: -1,
+        id: 'mapbox/outdoors-v11',
         accessToken: 'pk.eyJ1IjoicnVlc2NoIiwiYSI6ImNqd3k3OGZneTEyZnQ0OW41cjRlbGkyZnoifQ.co38j34gi0NNwT5bnmmu8A'
       }).addTo(mymap);
     
