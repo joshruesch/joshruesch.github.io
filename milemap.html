@@ -21,10 +21,10 @@
   <body>
    <div id="mapid" style='position: absolute; top: 0; right: 0; bottom: 0; left: 0;'></div>
   </body>
-    <script>
-      var mymap = L.map('mapid').setView([38.948152, -102.711772], 4.5);
+  <script>
 
-      function haversine() {
+
+    function haversine() {
        var radians = Array.prototype.map.call(arguments, function(deg) { return deg/180.0 * Math.PI; });
        var lat1 = radians[0], lon1 = radians[1], lat2 = radians[2], lon2 = radians[3];
        var R = 6372.8; // km
@@ -33,10 +33,9 @@
        var a = Math.sin(dLat / 2) * Math.sin(dLat /2) + Math.sin(dLon / 2) * Math.sin(dLon /2) * Math.cos(lat1) * Math.cos(lat2);
        var c = 2 * Math.asin(Math.sqrt(a));
        return R * c * 0.621371;
-      }
+    }
 
-     function createMarker(element) {
-
+    function createMarker(element) {
         var marker = L.marker([element.latitude, element.longitude]).addTo(mymap);
         marker.on('mousedown', function(ev) {
           var div = document.createElement('div');
@@ -50,8 +49,9 @@
           });
           marker.bindPopup(div);
         });
+    };
 
-      };
+    var mymap = L.map('mapid')
 
       var json = [
         {
@@ -883,59 +883,63 @@
           'raw_url': 'images/IMG_7540.jpg',
         },
         
- /*
-        {
-          'title': '',
-          'latitude': ,
-          'longitude': ,
-          'raw_url': '',
-        },
+/*
+      {
+        'title': '',
+        'latitude': ,
+        'longitude': ,
+        'raw_url': '',
+      },
 */
 
-      ];
-      
+    ];
+    
 
-      json.forEach(function(element) {
-        createMarker(element);
-      });
+    json.forEach(function(element) {
+      createMarker(element);
+    });
 
+    var minDistance = Number.MAX_SAFE_INTEGER;
+    var maxDistance = 0;
 
-      var minDistance = Number.MAX_SAFE_INTEGER;
-      var maxDistance = 0;
+    var minLeft = '';
+    var minRight = '';
 
-      var minLeft = '';
-      var minRight = '';
+    var maxLeft = '';
+    var maxRight = '';
+    for (var i = 0; i < json.length - 1; i++) { 
+      for (var j = i + 1; j < json.length; j++) {
+        var currentDistance = haversine(json[i].latitude, json[i].longitude, json[j].latitude, json[j].longitude);
+        if (currentDistance < minDistance) {
+          minDistance = currentDistance;
+          minLeft = json[i];
+          minRight = json[j];
+        }
 
-      var maxLeft = '';
-      var maxRight = '';
-      for (var i = 0; i < json.length - 1; i++) { 
-        for (var j = i + 1; j < json.length; j++) {
-          var currentDistance = haversine(json[i].latitude, json[i].longitude, json[j].latitude, json[j].longitude);
-          if (currentDistance < minDistance) {
-            minDistance = currentDistance;
-            minLeft = json[i].title;
-            minRight = json[j].title;
-          }
-
-          if (currentDistance > maxDistance) {
-            maxDistance = currentDistance;
-            maxLeft = json[i].title;
-            maxRight = json[j].title;
-          }
+        if (currentDistance > maxDistance) {
+          maxDistance = currentDistance;
+          maxLeft = json[i];
+          maxRight = json[j];
         }
       }
-      console.log(`Min distance (${minDistance})is from ${minLeft} to ${minRight}`);
-      console.log(`Max distance (${maxDistance})is from ${maxLeft} to ${maxRight}`);
-      console.log(`Data points: ${json.length}`);
+    }
+    console.log(`Min distance (${minDistance})is from ${minLeft.title} to ${minRight.title}`);
+    console.log(`Max distance (${maxDistance})is from ${maxLeft.title} to ${maxRight.title}`);
+    console.log(`Data points: ${json.length}`);
 
-      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-        attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>',
-        tileSize: 512,
-        maxZoom: 18,
-        zoomOffset: -1,
-        id: 'mapbox/outdoors-v11',
-        accessToken: 'pk.eyJ1IjoicnVlc2NoIiwiYSI6ImNqd3k3OGZneTEyZnQ0OW41cjRlbGkyZnoifQ.co38j34gi0NNwT5bnmmu8A'
-      }).addTo(mymap);
-    
-    </script>
+    mymap.fitBounds([
+      [maxLeft.latitude, maxLeft.longitude],
+      [maxRight.latitude, maxRight.longitude],
+    ]);
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+      attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>',
+      tileSize: 512,
+      maxZoom: 18,
+      zoomOffset: -1,
+      id: 'mapbox/outdoors-v11',
+      accessToken: 'pk.eyJ1IjoicnVlc2NoIiwiYSI6ImNqd3k3OGZneTEyZnQ0OW41cjRlbGkyZnoifQ.co38j34gi0NNwT5bnmmu8A'
+    }).addTo(mymap);
+  
+  </script>
 </html>
