@@ -6,13 +6,23 @@
     <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
    integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
    crossorigin=""></script>
+   <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    html, body, #map {
+        height: 100%;
+        width: 100vw;
+    }
+   </style>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
  </head>
   <body>
    <div id="mapid" style='position: absolute; top: 0; right: 0; bottom: 0; left: 0;'></div>
   </body>
     <script>
       var mymap = L.map('mapid').setView([38.948152, -102.711772], 4.5);
-
 
       function haversine() {
        var radians = Array.prototype.map.call(arguments, function(deg) { return deg/180.0 * Math.PI; });
@@ -27,19 +37,20 @@
 
      function createMarker(element) {
 
-        console.log(element.raw_url)
-
         var marker = L.marker([element.latitude, element.longitude]).addTo(mymap);
-        var div = document.createElement('div');
-        div.style.paddingTop = '10px';
+        marker.on('mousedown', function(ev) {
+          var div = document.createElement('div');
+          div.style.paddingTop = '10px';
 
-        var textStyle = 'style="display:block; text-align:center;"';
-        var imgStyle = 'style="width:100px; margin:auto; display:block;"';
-        div.innerHTML = `<b ${textStyle}>${element.title}</b><br><img ${imgStyle} src="${element.raw_url}"/>`;
-        div.addEventListener('click', event => {
-          window.open(`${element.raw_url}`, '_blank');
+          var textStyle = 'style="display:block; text-align:center;"';
+          var imgStyle = 'style="width:100px; margin:auto; display:block;"';
+          div.innerHTML = `<b ${textStyle}>${element.title}</b><br><img ${imgStyle} src="${element.raw_url}"/>`;
+          div.addEventListener('click', event => {
+            window.open(`${element.raw_url}`, '_blank');
+          });
+          marker.bindPopup(div);
         });
-        marker.bindPopup(div);
+
       };
 
       var json = [
